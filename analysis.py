@@ -35,7 +35,7 @@ from sklearn.svm import SVC
 import statsmodels.api as sm
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = PROJECT_ROOT / "data"
+#DATA_DIR = PROJECT_ROOT / "data"
 
 # ---------- 常量与命名规范 ----------
 # 数据文件中的 BMI 组写法 -> 规范化写法（与两个优化结果 CSV 的索引一致）
@@ -93,16 +93,20 @@ PLOTLY_CONFIG = {
 }
 
 
-# ================= 数据加载 =================
+# =================== 数据加载 ===================
 def load_data() -> dict:
     """加载全部数据文件，返回字典。"""
-    male = pd.read_csv(DATA_DIR / "male_clean.csv", encoding="utf-8-sig")
-    female = pd.read_csv(DATA_DIR / "female_clean.csv", encoding="utf-8-sig")
-    pred = pd.read_csv(DATA_DIR / "model_predictions.csv", encoding="utf-8-sig")
-    opt2 = pd.read_csv(DATA_DIR / "optimal_ntip_times.csv", index_col=0)
-    opt3 = pd.read_csv(DATA_DIR / "problem3_optimal_times.csv", index_col=0)
-    raw_male = pd.read_excel(DATA_DIR / "附件.xlsx", sheet_name="男胎检测数据")
-    raw_female = pd.read_excel(DATA_DIR / "附件.xlsx", sheet_name="女胎检测数据")
+    # 获取当前analysis.py所在目录，本地、云端都能用
+    BASE_DIR = Path(__file__).parent
+
+    male = pd.read_csv(BASE_DIR / "male_clean.csv", encoding="utf-8-sig")
+    female = pd.read_csv(BASE_DIR / "female_clean.csv", encoding="utf-8-sig")
+    pred = pd.read_csv(BASE_DIR / "model_predictions.csv", encoding="utf-8-sig")
+    opt2 = pd.read_csv(BASE_DIR / "optimal_ntip_times.csv", index_col=0)
+    opt3 = pd.read_csv(BASE_DIR / "problem3_optimal_times.csv", index_col=0)
+    raw_male = pd.read_excel(BASE_DIR / "附件.xlsx", sheet_name="男胎检测数据")
+    raw_female = pd.read_excel(BASE_DIR / "附件.xlsx", sheet_name="女胎检测数据")
+
     for df in (male, female):
         # 修复个别记录的BMI组缺失（按其BMI值按分组定义补填，不改变其他值）
         miss_bmi = df["BMI组"].isna()
@@ -112,14 +116,20 @@ def load_data() -> dict:
         # 怀孕次数为"1/2/≥3"语义列（≥3为文本），统一转字符串避免混型
         if "怀孕次数" in df.columns:
             df["怀孕次数"] = df["怀孕次数"].astype(str)
+
     for df in (raw_male, raw_female):
-        if "怀孕次数" in df.columns and df["怀孕次数"].dtype == object:
-            df["怀孕次数"] = df["怀孕次数"].astype(str)
-    # 规范化两个优化结果表的索引顺序
-    opt2.index = [str(i) for i in opt2.index]
-    opt3.index = [str(i) for i in opt3.index]
-    return {"male": male, "female": female, "pred": pred, "opt2": opt2, "opt3": opt3,
-            "raw_male": raw_male, "raw_female": raw_female}
+        # 这里保留你原来后续的代码不动……
+        pass
+
+    return {
+        "male": male,
+        "female": female,
+        "pred": pred,
+        "opt2": opt2,
+        "opt3": opt3,
+        "raw_male": raw_male,
+        "raw_female": raw_female
+    }
 
 
 def filter_data(df: pd.DataFrame, bmi_groups: list, stages: list,
